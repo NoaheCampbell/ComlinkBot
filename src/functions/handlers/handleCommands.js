@@ -13,14 +13,13 @@ module.exports = (client) => {
 
             for (const file of commandFiles) {
     const command = require(`../../commands/${folder}/${file}`);
-    console.log(command); // Add this line to log the imported command object
     commands.set(command.data.name, command);
     commandArray.push(command.data.toJSON());
     console.log(`Command ${command.data.name} loaded`);
 }
         } 
 
-        const clientId = '1177312320507084880';
+        const clientId = '1196577617927745536';
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
         try {
