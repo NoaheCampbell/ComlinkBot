@@ -1,4 +1,6 @@
 const { Client, GatewayIntentBits, PermissionFlagsBits, Partials, SlashCommandBuilder } = require('discord.js');
+const puppeteer = require("puppeteer");
+const cheerio = require("cheerio");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -24,9 +26,40 @@ module.exports = {
             option.setName("duration")
             .setDescription("The duration of the punishment (e.g., '2h', '4d', '1w', 'permanent')")
             .setRequired(true)
+        )
+        .addAttachmentOption(option =>
+            option.setName("attachment")
+            .setDescription("The proof of the punishment (e.g., a screenshot)")
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+            option.setName("link")
+            .setDescription("The proof of the punishment (e.g., a link to a screenshot)")
+            .setRequired(false)
         ),
 
     async execute(interaction) {
-        interaction.reply(`${interaction.options.getString("type")} ${interaction.options.getString("ign")} for ${interaction.options.getString("duration")} for ${interaction.options.getString("reason")}`);
+        // Defers the reply so the bot doesn't time out
+        await interaction.deferReply();
+        // Goes to mcuuid and gets the UUID of the player
+        const browser = await puppeteer.launch({ headless: "new" });
+        const page = await browser.newPage();
+        const url = `https://mcuuid.net/?q=${interaction.options.getString("ign")}`;
+        await page.goto(url);
+        const html = await page.content();
+        const $ = cheerio.load(html);
+
+        // Looks for an input with the id of results_id and gets the value of the first one
+        const uuid = $("#results_id").val();
+        // Closes the browser
+        await browser.close();
+        console.log(uuid);
+
+        interaction.editReply(
+        `Punishment type: ${interaction.options.getString("type")} 
+IGN: ${interaction.options.getString("ign")}
+UUID: ${uuid}
+Duration: ${interaction.options.getString("duration")}
+Reason: ${interaction.options.getString("reason")}`);
     }
 }
