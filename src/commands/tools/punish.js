@@ -58,21 +58,29 @@ module.exports = {
 
             const forumChannel = await interaction.client.channels.fetch(forumID);
 
-            // Goes to mcuuid and gets the UUID of the player
-            const browser = await puppeteer.launch({ headless: "new" });
-            const page = await browser.newPage();
-            const url = `https://mcuuid.net/?q=${ign}`;
-            await page.goto(url);
-            const html = await page.content();
-            const $ = cheerio.load(html);
+            const isBedrock = ign.startsWith("*");
 
-            // Looks for an input with the id of results_id and gets the value of the first one
-            const uuid = $("#results_id").val();
-            // Closes the browser
-            await browser.close();
+            let uuid;
+            let messageTitle;
+            if (!isBedrock) {
+                // Goes to mcuuid and gets the UUID of the player
+                const browser = await puppeteer.launch({ headless: "new" });
+                const page = await browser.newPage();
+                const url = `https://mcuuid.net/?q=${ign}`;
+                await page.goto(url);
+                const html = await page.content();
+                const $ = cheerio.load(html);
 
-            // Makes a new post in the forum using the forum id
-            const messageTitle = `${ign} (${uuid}) `;
+                // Looks for an input with the id of results_id and gets the value of the first one
+                uuid = $("#results_id").val();
+                // Closes the browser
+                await browser.close();
+            
+                // Makes a new post in the forum using the forum id
+                messageTitle = `${ign} (${uuid}) `;
+            } else {
+                messageTitle = `${ign}`;
+            }
             const link = interaction.options.getString("link");
             let messageContent;
 
