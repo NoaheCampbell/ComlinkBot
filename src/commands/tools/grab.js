@@ -14,6 +14,11 @@ module.exports = {
             option.setName("ign")
             .setDescription("The offender's ign")
             .setRequired(true)
+        )
+        .addStringOption(option =>
+            option.setName("reason")
+            .setDescription("The reason for the punishment")
+            .setRequired(true)
         ),
 
     async execute(interaction) {
@@ -24,27 +29,35 @@ module.exports = {
             await interaction.editReply('The operation has timed out.');
         }, 10000); // Set timeout for 10 seconds
 
-        const ign = interaction.options.getString("ign");
+        const ign = interaction.options.getString("ign").toLowerCase();
+        const reason = interaction.options.getString("reason").toLowerCase();
 
         try {
 
             // Goes to the forumid channel and looks for a post with the offender's ign
             const forumChannel = await interaction.client.channels.fetch(forumID);
-            const messages = await forumChannel.threads.fetch({ limit: 100 });
-            let offenderMessage;
+            const threads = await forumChannel.threads.fetch({ limit: 100 });
+            let offenderMessage = null;
 
-            for (const message of messages.threads) {
-                // if the current message contains the offender's ign, set the offenderMessage to that message
-                if (message[1].name.includes(ign)) {
-                    offenderMessage = message[1];
-                    break;
+            for (const [, thread] of threads.threads) {
+                // Fetch messages from each thread
+                const messages = await thread.messages.fetch({ limit: 50 }); // Adjust the limit as needed
+
+                // Search through messages for the specific content
+                for (const [, message] of messages) {
+                    if (message.content.toLowerCase().includes(reason) && thread.name.toLowerCase().includes(ign)) {
+                        offenderMessage = message;
+                        break;
+                    }
                 }
+
+                if (offenderMessage) break; // Stop searching if you've found the message
             }
             
             // Grabs the messageid from the offenderMessage
             const messageID = offenderMessage.lastMessageID;
             
-            offenderMessage = await (forumChannel.threads.cache.find(thread => thread.name.includes(ign)).messages.fetch(messageID));
+            offenderMessage = await (forumChannel.threads.cache.find(thread => thread.name.toLowerCase().includes(ign)).messages.fetch(messageID));
             
             
             // Grabs the attachments and links from the offenderMessage
