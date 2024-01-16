@@ -1,6 +1,9 @@
 const { Client, GatewayIntentBits, PermissionFlagsBits, Partials, SlashCommandBuilder } = require('discord.js');
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
+require('dotenv').config();
+
+const forumID = process.env.FORUMID;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -39,12 +42,20 @@ module.exports = {
         ),
 
     async execute(interaction) {
-        // Defers the reply so the bot doesn't time out
+        
         await interaction.deferReply();
+
+        const ign = interaction.options.getString("ign");
+        const type = interaction.options.getString("type");
+        const reason = interaction.options.getString("reason");
+        const duration = interaction.options.getString("duration");
+
+        const forumChannel = await interaction.client.channels.fetch(forumID);
+
         // Goes to mcuuid and gets the UUID of the player
         const browser = await puppeteer.launch({ headless: "new" });
         const page = await browser.newPage();
-        const url = `https://mcuuid.net/?q=${interaction.options.getString("ign")}`;
+        const url = `https://mcuuid.net/?q=${ign}`;
         await page.goto(url);
         const html = await page.content();
         const $ = cheerio.load(html);
@@ -53,13 +64,51 @@ module.exports = {
         const uuid = $("#results_id").val();
         // Closes the browser
         await browser.close();
-        console.log(uuid);
 
-        interaction.editReply(
-        `Punishment type: ${interaction.options.getString("type")} 
-IGN: ${interaction.options.getString("ign")}
-UUID: ${uuid}
-Duration: ${interaction.options.getString("duration")}
-Reason: ${interaction.options.getString("reason")}`);
+        // Makes a new post in the forum using the forum id
+        const messageTitle = `${ign} (${uuid}) `;
+        const link = interaction.options.getString("link");
+        let messageContent;
+
+        if (link) {
+            messageContent = `${reason}. ${duration} ${type} \n \n ${link}`;
+        } else {
+            messageContent = `${reason}. ${duration} ${type}`;
+        }
+        
+        
+
+        // Adds the attachment and link to the post if there is one
+        const attachment = interaction.options.getAttachment("attachment");
+
+        let thread;
+        if (attachment) {
+
+            thread = await forumChannel.threads.create({
+                name: messageTitle,
+                autoArchiveDuration: 1440,
+                reason: "New punishment",
+                message: {
+                    content: messageContent,
+                    files: [attachment]
+                }
+            });
+
+        } else {
+            
+            thread = await forumChannel.threads.create({
+                name: messageTitle,
+                autoArchiveDuration: 1440,
+                reason: "New punishment",
+                message: {
+                    content: messageContent
+                }
+            });
+        }
+
+        // Grabs the message link of the newly made thread
+        const threadLink = thread.url;
+
+        interaction.editReply(`Punishment logged at ${threadLink}`);
     }
 }
