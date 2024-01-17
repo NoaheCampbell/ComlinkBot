@@ -57,7 +57,7 @@ module.exports = {
             const duration = interaction.options.getString("duration");
 
             const forumChannel = await interaction.client.channels.fetch(forumID);
-
+            const punisher = await interaction.user.id;
             const isBedrock = ign.startsWith("*");
 
             let uuid;
@@ -85,9 +85,9 @@ module.exports = {
             let messageContent;
 
             if (link) {
-                messageContent = `${reason}. ${duration} ${type} \n \n ${link}`;
+                messageContent = `Punished by <@${punisher}> for ${reason}. ${duration} ${type} \n \n ${link}`;
             } else {
-                messageContent = `${reason}. ${duration} ${type}`;
+                messageContent = `Punished by <@${punisher}> for ${reason}. ${duration} ${type}`;
             }
             
             
