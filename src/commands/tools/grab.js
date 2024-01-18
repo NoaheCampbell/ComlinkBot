@@ -57,7 +57,7 @@ module.exports = {
                 }
 
             }
-            console.log(offenderMessages);
+
             // Grabs the messageids from the offenderMessage
             let messageIDs = [];
             let messages = [];
@@ -68,7 +68,7 @@ module.exports = {
             }
             
             // Sorts the messages from oldest to newest
-            messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+            offenderMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
             // Gives the user the option to choose which message they want to use
             const messageOptions = [];
@@ -79,7 +79,7 @@ module.exports = {
             // Create an array of options for the select menu
             let selectOptions = offenderMessages.map((message, index) => {
                 return {
-                    label: `Offense #${index + 1}`, // or some other identifier
+                    label: `Offense #${index + 1}`, // the label shown for the option
                     description: message.content, // a snippet of the message content
                     value: message.id // the unique identifier for the selection
                 };
@@ -116,7 +116,7 @@ module.exports = {
 
             // Grabs the message id from the user's selection
             const selectedMessageID = collected.values[0];
-            console.log(selectedMessageID);
+            
             // Grabs the message from the offenderMessage array that matches the user's selection
             const offenderMessage = offenderMessages.filter(message => message.id === selectedMessageID)[0];
 
