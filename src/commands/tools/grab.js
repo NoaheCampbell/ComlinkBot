@@ -1,6 +1,4 @@
 const { Client, GatewayIntentBits, PermissionFlagsBits, Partials, StringSelectMenuOptionBuilder, SlashCommandBuilder, StringSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
-const puppeteer = require("puppeteer");
-const cheerio = require("cheerio");
 require('dotenv').config();
 
 const forumID = process.env.FORUMID;
@@ -76,6 +74,33 @@ module.exports = {
                 messageOptions.push({ name: message.createdTimestamp, value: message.id });
             }
             
+            // If there is only one message, then it will automatically select that message
+            if (messageOptions.length === 1) {
+                await interaction.editReply({ content: "Thinking..." })
+                // Grabs the attachments and links from the offenderMessage if there are any
+                if (offenderMessages[0].attachments.size > 0 && offenderMessages[0].embeds.size > 0) {
+                    const attachments = offenderMessages[0].attachments.map(attachment => attachment.url);
+                    const links = offenderMessages[0].embeds.map(embed => embed.url);
+
+                    // Sends the attachments and links to the user
+                    await interaction.editReply({ content: `**Attachments:** ${attachments}\n**Links:** ${links}` })
+                } else if (offenderMessages[0].attachments.size > 0) {
+                    const attachments = offenderMessages[0].attachments.map(attachment => attachment.url);
+
+                    // Sends the attachments to the user
+                    await interaction.editReply({ content: `**Attachments:** ${attachments}` })
+                } else if (offenderMessages[0].embeds.size > 0) {
+                    const links = offenderMessages[0].embeds.map(embed => embed.url);
+
+                    // Sends the links to the user
+                    await interaction.editReply({ content: `**Links:** ${links}` })
+                } else {
+                    await interaction.editReply({content: "There are no attachments or links for this offense."});
+                }
+                clearTimeout(timeout);
+                return;
+            }
+
             // Create an array of options for the select menu
             let selectOptions = offenderMessages.map((message, index) => {
                 return {
