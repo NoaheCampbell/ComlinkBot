@@ -92,9 +92,10 @@ module.exports = {
 
             // Create the action row
             const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+            await interaction.editReply({ content: "Thinking..." })
+            // Send the message with the select menu by sending a new message as opposed to editing it
+            await interaction.followUp({ content: 'Select an offense', components: [actionRow], ephemeral: true });
 
-            // Send the message with the select menu
-            await interaction.editReply({ content: "Please select the offense:", components: [actionRow] });
             
             // After the user makes their selection, wait for the interaction
             const filter = i => i.customId === 'select-offense' && i.user.id === interaction.user.id;
@@ -102,10 +103,6 @@ module.exports = {
 
             // When the user makes their selection, collect the interaction and stop collecting
             collector.on('collect', async i => {
-                // Makes sure only the user who made the command can interact with the select menu
-                if (i.user.id !== interaction.user.id) {
-                    return i.reply({ content: 'Only the user who made the command can interact with the select menu.', ephemeral: true });
-                }
                 await i.deferUpdate();
                 collector.stop();
             }
