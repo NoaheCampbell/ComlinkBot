@@ -57,6 +57,7 @@ module.exports = {
                 }
 
             }
+            console.log(offenderMessages);
             // Grabs the messageids from the offenderMessage
             let messageIDs = [];
             let messages = [];
@@ -101,10 +102,12 @@ module.exports = {
 
             // When the user makes their selection, collect the interaction and stop collecting
             collector.on('collect', async i => {
+                // Makes sure only the user who made the command can interact with the select menu
+                if (i.user.id !== interaction.user.id) {
+                    return i.reply({ content: 'Only the user who made the command can interact with the select menu.', ephemeral: true });
+                }
                 await i.deferUpdate();
                 collector.stop();
-                // Removes the select menu
-                // await interaction.editReply({ content: "Grabbing relevant media", components: [] });
             }
             );
 
@@ -113,23 +116,23 @@ module.exports = {
 
             // Grabs the message id from the user's selection
             const selectedMessageID = collected.values[0];
-            
+            console.log(selectedMessageID);
             // Grabs the message from the offenderMessage array that matches the user's selection
-            const offenderMessage = offenderMessages.filter(message => message.id === selectedMessageID);
+            const offenderMessage = offenderMessages.filter(message => message.id === selectedMessageID)[0];
 
             // Grabs the attachments and links from the offenderMessage if there are any
-            if (offenderMessage.attachments && offenderMessage.embeds) {
+            if (offenderMessage.attachments.size > 0 && offenderMessage.embeds.size > 0) {
                 const attachments = offenderMessage.attachments.map(attachment => attachment.url);
                 const links = offenderMessage.embeds.map(embed => embed.url);
 
                 // Sends the attachments and links to the user
                 await interaction.editReply({ content: `**Attachments:** ${attachments}\n**Links:** ${links}`, components: [] })
-            } else if (offenderMessage.attachments) {
+            } else if (offenderMessage.attachments.size > 0) {
                 const attachments = offenderMessage.attachments.map(attachment => attachment.url);
 
                 // Sends the attachments to the user
                 await interaction.editReply({ content: `**Attachments:** ${attachments}`, components: [] })
-            } else if (offenderMessage.embeds) {
+            } else if (offenderMessage.embeds.size > 0) {
                 const links = offenderMessage.embeds.map(embed => embed.url);
 
                 // Sends the links to the user
