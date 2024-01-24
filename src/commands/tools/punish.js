@@ -1,6 +1,5 @@
-const { Client, GatewayIntentBits, PermissionFlagsBits, Partials, SlashCommandBuilder } = require('discord.js');
-const puppeteer = require("puppeteer");
-const cheerio = require("cheerio");
+const { Client, GatewayIntentBits, PermissionFlagsBits, Partials, SlashCommandBuilder, TextInputBuilder } = require('discord.js');
+const axios = require('axios');
 require('dotenv').config();
 
 const forumID = process.env.FORUMID;
@@ -62,20 +61,23 @@ module.exports = {
 
             let uuid;
             let messageTitle;
-            if (!isBedrock) {
-                // Goes to mcuuid and gets the UUID of the player
-                const browser = await puppeteer.launch({ headless: "new" });
-                const page = await browser.newPage();
-                const url = `https://mcuuid.net/?q=${ign}`;
-                await page.goto(url);
-                const html = await page.content();
-                const $ = cheerio.load(html);
 
-                // Looks for an input with the id of results_id and gets the value of the first one
-                uuid = $("#results_id").val();
-                // Closes the browser
-                await browser.close();
-            
+            // If the word Alt is detected in the reason, it will ask a follow up ephemeral question about who the main account is and who the alt is
+            if (reason.toLowerCase().includes("alt")) {
+
+                await interaction.editReply("Enter the name of the main account:");
+                   
+                clearTimeout(timeout);
+                return;
+            }
+
+            // General punishment message
+            if (!isBedrock) {
+                // Makes a GET request to the Mojang API to get the UUID of the player
+                const response = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${ign}`);
+                
+                uuid = response.data.id;
+
                 // Makes a new post in the forum using the forum id
                 messageTitle = `${ign} (${uuid}) `;
             } else {
