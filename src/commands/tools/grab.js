@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, PermissionFlagsBits, Partials, StringSelectMenuOptionBuilder, SlashCommandBuilder, StringSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
+const { SlashCommandBuilder, StringSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
 require('dotenv').config();
 
 const forumID = process.env.FORUMID;

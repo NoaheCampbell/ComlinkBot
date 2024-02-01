@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, PermissionFlagsBits, Partials, SlashCommandBuilder, TextInputBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios');
 require('dotenv').config();
 
@@ -66,9 +66,51 @@ module.exports = {
             if (reason.toLowerCase().includes("alt")) {
 
                 await interaction.editReply("Enter the name of the main account:");
+
+                // awaits a response from the user
+                await interaction.channel.awaitMessages()
+                    .then(async collected => {
+                        console.log(collected.first().content);
+                        const mainAccount = collected.first().content;
+
+                        await interaction.editReply("Enter the name of the alt account:");
+
+                        await interaction.channel.awaitMessages({ filter: m => m.author.id === interaction.user.id, max: 1, time: 60000, errors: ['time'] })
+                            .then(async collected => {
+                                const altAccount = collected.first().content;
+
+                                // Makes a GET request to the Mojang API to get the UUID of the player
+                                const mainResponse = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${mainAccount}`);
+                                const altResponse = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${altAccount}`);
+
+                                const mainUUID = mainResponse.data.id;
+                                const altUUID = altResponse.data.id;
+
+                                // Makes a new post in the forum using the forum id
+                                messageTitle = `${mainAccount} (${mainUUID}) and ${altAccount} (${altUUID}) `;
+                            })
+                            .catch(collected => {
+                                interaction.editReply('The operation has timed out.');
+                                clearTimeout(timeout);
+                                return;
+                            });
+                    })
                    
                 clearTimeout(timeout);
                 return;
+            }
+
+            // Searches to see if the offender already has a ban archive, if so, it will add to the existing thread
+            const threads = await forumChannel.threads.fetch();
+            for (const [, thread] of threads.threads) {
+                if (thread.name.includes(ign)) {
+                    const link = thread.url;
+                    const messageContent = `Punished by <@${punisher}> for ${reason}. ${duration} ${type}`;
+                    await thread.send(messageContent);
+                    await interaction.editReply(`Punishment logged at ${link}`);
+                    clearTimeout(timeout);
+                    return;
+                }
             }
 
             // General punishment message
