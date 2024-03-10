@@ -31,7 +31,7 @@ module.exports = {
         const staffData = fs.readFileSync(filePath, 'utf8').trim();
         const staffList = staffData.split('\n').map(line => {
             const [ign, id] = line.split(' ');
-            return ign ? `- ${ign}${id ? ` (ID: ${id})` : ''}` : ''; // Include Discord ID if present
+            return ign ? `- ${ign}${`<@${id}>`}` : ''; // Include Discord ID if present
         }).filter(Boolean); // Remove empty entries
 
         if (staffList.length === 0) {
