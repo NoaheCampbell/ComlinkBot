@@ -8,7 +8,7 @@ module.exports = { updateGraphMessage };
 /**
  * Creates a graph showing the highest player count on the Lifesteal server
  * across every day. This can be used to track overall player retention and find trends
- * that increase or decrease the active playerbase
+ * that increase or decrease the active playerbase.
  */
 
 const width = 400; // Width of the graph

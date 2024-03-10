@@ -51,6 +51,7 @@ async function getStaffData() {
     // Mock data, replace with your actual data fetching logic
     const comlinkStaff = [
         { name: 'Hunter_cookie21', time: '11:14', status: '' },
+        { name: 'MaxerRackham', time: '9:23', status: '' },
     ];
 
     const nonComlinkStaff = [
@@ -120,4 +121,10 @@ async function updateStaffEmbedMessage(channel) {
     } else {
         sendAndSaveNewStaffMessage(channel, embed); // If no message ID is stored, send a new message
     }
+
+    // Combines all staff member names from comlinkStaff, afkStaff, and nonComlinkStaff into an array
+    const onlineStaff = comlinkStaff.map(staff => staff.name).concat(afkStaff.map(staff => staff.name)).concat(nonComlinkStaff.map(staff => staff.name));
+
+    // Writes the names of all online staff members to a new file
+    fs.writeFileSync(path.join(__dirname, 'onlineStaff.txt'), onlineStaff.join('\n'));
 }
